@@ -1,6 +1,6 @@
 # YouTubeアップロード用メタデータ
 
-ファイル: `~/Downloads/COPYCAT-demo.mp4`(1:46 / 1080p / 11.7MB)
+ファイル: `~/Downloads/COPYCAT-demo.mp4`(2:07 / 1080p / 12.8MB)
 サムネイル(任意): `~/Downloads/COPYCAT-thumbnail.png`
 公開設定: **公開(Public)** — Build Weekの要件。限定公開は不可。
 

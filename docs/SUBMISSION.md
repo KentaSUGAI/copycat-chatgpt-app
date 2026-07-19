@@ -76,7 +76,7 @@ chatgpt-apps, apps-sdk, mcp, cloudflare-workers, durable-objects, websocket, jav
 - [x] Pass the complete MCP/WebSocket E2E suite against the permanent production URL
 - [x] Register the permanent deployed `/mcp` endpoint in ChatGPT and complete an in-ChatGPT CPU round smoke test
 - [x] Run `npm run verify` once more from a clean checkout of the public GitHub repository
-- [x] Record a demo shorter than three minutes (`~/Downloads/COPYCAT-demo.mp4`, 1:46, narrated in English; upload metadata in `docs/YOUTUBE.md`)
+- [x] Record a demo shorter than three minutes (`~/Downloads/COPYCAT-demo.mp4`, 2:07, narrated in English, includes the per-player hint-translation feature; upload metadata in `docs/YOUTUBE.md`)
 - [ ] Upload the demo to YouTube as **Public** and paste the URL into Devpost
 - [x] Add the public repository URL above and to the Devpost public project page
 - [ ] Submit through Devpost (overview, details, category, judge instructions, repo target, and feedback ID are saved; final submit remains)
