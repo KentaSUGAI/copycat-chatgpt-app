@@ -40,6 +40,8 @@ interface Game {
   topic: Topic | null;
   chameleon: string | null;
   hints: Record<string, string>;
+  hintLanguages: Record<string, string>;
+  hintTranslations: Record<string, Record<string, string>>;
   votes: Record<string, string>;
   result: RoundResult | null;
   usedTopics: number[];
@@ -51,7 +53,6 @@ interface Env {
 }
 
 const MAX_PLAYERS = 10;
-const SUPPORTED_LANGS = new Set(["ja", "en", "zh", "ko", "es"]);
 const CPU_NAMES = ["Mochi", "Luna", "Sora", "Minto"];
 const CPU_HINTS: Record<string, string[]> = {
   ja: ["定番", "人気", "身近", "楽しい"],
@@ -62,7 +63,8 @@ const CPU_HINTS: Record<string, string[]> = {
 };
 
 function validLang(value: unknown): string {
-  return typeof value === "string" && SUPPORTED_LANGS.has(value) ? value : "en";
+  const lang = typeof value === "string" ? value.trim().slice(0, 35) : "";
+  return /^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$/.test(lang) ? lang.toLowerCase() : "en";
 }
 
 function freshGame(): Game {
@@ -76,6 +78,8 @@ function freshGame(): Game {
     topic: null,
     chameleon: null,
     hints: {},
+    hintLanguages: {},
+    hintTranslations: {},
     votes: {},
     result: null,
     usedTopics: [],
@@ -92,6 +96,8 @@ export class GameRoom extends DurableObject<Env> {
       for (const player of this.game.players) {
         if (player.cpuMode === undefined) player.cpuMode = player.isAI ? "rule" : null;
       }
+      this.game.hintTranslations ??= {};
+      this.game.hintLanguages ??= {};
     });
   }
 
@@ -160,6 +166,16 @@ export class GameRoom extends DurableObject<Env> {
         return Response.json({ ok: false, error: "invalid_json" }, { status: 400 });
       }
       return this.applyChatGptCpuAction(body);
+    }
+
+    if (url.pathname === "/hint-translations" && req.method === "POST") {
+      let body: Record<string, unknown>;
+      try {
+        body = await req.json();
+      } catch {
+        return Response.json({ ok: false, error: "invalid_json" }, { status: 400 });
+      }
+      return this.applyHintTranslations(body);
     }
 
     return new Response("not found", { status: 404 });
@@ -293,6 +309,8 @@ export class GameRoom extends DurableObject<Env> {
 
     game.round += 1;
     game.hints = {};
+    game.hintLanguages = {};
+    game.hintTranslations = {};
     game.votes = {};
     game.result = null;
     game.topic = null;
@@ -311,6 +329,7 @@ export class GameRoom extends DurableObject<Env> {
       const hints = CPU_HINTS[player.lang] ?? CPU_HINTS.en;
       const offset = player.pid === game.chameleon ? index : game.topic.secret + index;
       game.hints[player.pid] = hints[offset % hints.length];
+      game.hintLanguages[player.pid] = player.lang;
     }
     if (game.players.every((player) => game.hints[player.pid] !== undefined)) game.phase = "vote";
   }
@@ -347,6 +366,7 @@ export class GameRoom extends DurableObject<Env> {
     const word = (typeof msg.word === "string" ? msg.word : "").trim().slice(0, 15);
     if (!word) return;
     game.hints[me.pid] = word;
+    game.hintLanguages[me.pid] = me.lang;
     if (game.players.every((player) => game.hints[player.pid] !== undefined)) {
       game.phase = "vote";
       this.playRuleCpuVotes();
@@ -442,10 +462,27 @@ export class GameRoom extends DurableObject<Env> {
     } catch {}
   }
 
-  private publicHints(): { pid: string; name: string; isAI: boolean; word: string }[] {
+  private publicHints(targetLang?: string): {
+    pid: string;
+    name: string;
+    isAI: boolean;
+    word: string;
+    sourceLang: string;
+    translatedWord: string | null;
+  }[] {
+    const normalizedTarget = targetLang ? validLang(targetLang) : null;
     return this.game.players
       .filter((player) => this.game.hints[player.pid] !== undefined)
-      .map((player) => ({ pid: player.pid, name: player.name, isAI: player.isAI, word: this.game.hints[player.pid] }));
+      .map((player) => ({
+        pid: player.pid,
+        name: player.name,
+        isAI: player.isAI,
+        word: this.game.hints[player.pid],
+        sourceLang: this.game.hintLanguages[player.pid] ?? player.lang,
+        translatedWord: normalizedTarget && normalizedTarget !== (this.game.hintLanguages[player.pid] ?? player.lang)
+          ? this.game.hintTranslations[player.pid]?.[normalizedTarget] ?? null
+          : null,
+      }));
   }
 
   private async saveAndBroadcast() {
@@ -471,7 +508,6 @@ export class GameRoom extends DurableObject<Env> {
       topic: game.topic && game.phase !== "lobby"
         ? { source: game.topic.source, builtinId: game.topic.builtinId }
         : null,
-      hints: showHints ? this.publicHints() : null,
       votes: reveal ? game.votes : null,
       result: reveal
         ? game.result
@@ -493,7 +529,12 @@ export class GameRoom extends DurableObject<Env> {
         role: dealt ? (isCopycat ? "copycat" : "citizen") : null,
         secretIndex: dealt && !isCopycat && game.topic ? game.topic.secret : null,
       };
-      this.send(socket, { type: "state", state: publicState, you });
+      const viewer = game.players.find((player) => player.pid === pid);
+      const state = {
+        ...publicState,
+        hints: showHints ? this.publicHints(viewer?.lang ?? "en") : null,
+      };
+      this.send(socket, { type: "state", state, you });
     }
   }
 
@@ -547,6 +588,7 @@ export class GameRoom extends DurableObject<Env> {
       const word = (typeof body.hint === "string" ? body.hint : "").trim().split(/\s+/)[0]?.slice(0, 15) ?? "";
       if (!word) return Response.json({ ok: false, error: "hint_required" }, { status: 400 });
       this.game.hints[pid] = word;
+      this.game.hintLanguages[pid] = cpu.lang;
       if (this.game.players.every((player) => this.game.hints[player.pid] !== undefined)) {
         this.game.phase = "vote";
         this.playRuleCpuVotes();
@@ -576,5 +618,38 @@ export class GameRoom extends DurableObject<Env> {
     }
 
     return Response.json({ ok: false, error: "no_pending_turn", phase: this.game.phase }, { status: 409 });
+  }
+
+  private async applyHintTranslations(body: Record<string, unknown>): Promise<Response> {
+    if (this.game.phase === "lobby" || this.game.phase === "hint") {
+      return Response.json({ ok: false, error: "hints_not_public" }, { status: 409 });
+    }
+    const requesterPid = typeof body.requesterPid === "string" ? body.requesterPid.slice(0, 40) : "";
+    const requester = this.game.players.find((player) => player.pid === requesterPid);
+    if (!requester) return Response.json({ ok: false, error: "requester_not_found" }, { status: 404 });
+
+    const targetLang = validLang(body.targetLocale);
+    if (targetLang !== requester.lang) {
+      return Response.json({ ok: false, error: "locale_mismatch" }, { status: 400 });
+    }
+    const rows = Array.isArray(body.translations) ? body.translations.slice(0, MAX_PLAYERS) : [];
+    let accepted = 0;
+    for (const row of rows) {
+      if (!row || typeof row !== "object") continue;
+      const entry = row as Record<string, unknown>;
+      const pid = typeof entry.pid === "string" ? entry.pid.slice(0, 40) : "";
+      const translated = typeof entry.translation === "string" ? entry.translation.trim().slice(0, 40) : "";
+      const source = this.game.players.find((player) => player.pid === pid);
+      const sourceLang = this.game.hintLanguages[pid] ?? source?.lang;
+      if (!source || this.game.hints[pid] === undefined || sourceLang === targetLang || !translated) continue;
+      this.game.hintTranslations[pid] ??= {};
+      this.game.hintTranslations[pid][targetLang] = translated;
+      accepted++;
+    }
+    if (accepted === 0) {
+      return Response.json({ ok: false, error: "no_valid_translations" }, { status: 400 });
+    }
+    await this.saveAndBroadcast();
+    return Response.json({ ok: true, accepted, targetLocale: targetLang, phase: this.game.phase });
   }
 }

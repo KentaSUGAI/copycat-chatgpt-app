@@ -21,7 +21,7 @@ COPYCAT is social deduction for 3–10 players. Everyone sees the same 16-word g
 
 **What is different:**
 
-1. **Cross-language multiplayer.** Built-in decks are parallel-translated in Japanese, English, Chinese, Korean, and Spanish. The server shares only card and word indexes, so every player sees the same game in their selected language.
+1. **Cross-language multiplayer.** Built-in decks are parallel-translated in Japanese, English, Chinese, Korean, and Spanish. The server shares only card and word indexes, so every player sees the same game in their selected language. When free-form hints become public, each participant's own ChatGPT translates foreign hints into that participant's language; the room caches those translations and displays them beside the original.
 
 2. **Every social configuration works.** Every participant opens COPYCAT from ChatGPT, enters a nickname, and chooses global matchmaking, a private room, instant rule CPU practice, or ChatGPT CPUs. Matchmaking groups three people and falls back to rule CPUs after ten seconds so one judge can always finish a round.
 
@@ -34,6 +34,8 @@ COPYCAT is social deduction for 3–10 players. Everyone sees the same 16-word g
 **How we used Codex:**
 
 - Codex completed the game state machine, reconciled the multilingual UI and server contracts, and added MCP/WebSocket E2E coverage.
+- Codex added per-player realtime hint translation through `translate_copycat_hints`, preserving the original answer and the no-operator-API-cost boundary.
+- Codex consolidated topic authoring behind a validated generator and created a repository-local `$add-copycat-topics` skill so new five-language decks can be appended safely.
 - Codex migrated the product from a local `codex app-server` bridge prototype to a true ChatGPT App-only architecture after validating the Apps SDK authentication and component-bridge boundaries.
 - Codex verified the Cloudflare deployment bundle, MCP descriptors, responsive UI, and complete three-player round flow.
 - Codex added one-tap matchmaking and redesigned the widget with the Apple Design skill: clear hierarchy, immediate feedback, quiet translucent materials, dark mode, and reduced-motion support.
@@ -59,7 +61,7 @@ chatgpt-apps, apps-sdk, mcp, cloudflare-workers, durable-objects, websocket, jav
 2. **0:15** — Ask ChatGPT to open COPYCAT; enter a nickname and tap “Find players.”
 3. **0:35** — Show ChatGPT CPU mode: start a round and tap “Let ChatGPT play the CPU turns,” then show the model calling the private turn/action tools. Use quick rule CPU practice first when recording a guaranteed complete round.
 4. **0:58** — Show the same card rendered in Japanese and English and the private role/secret views.
-5. **1:22** — Submit hints, vote, and demonstrate the Copycat’s final comeback guess.
+5. **1:22** — Submit hints, show a foreign hint translated beside its original, vote, and demonstrate the Copycat’s final comeback guess.
 6. **1:55** — Press “Translate with ChatGPT” and render one additional language through `localize_copycat`.
 7. **2:20** — Architecture: ChatGPT MCP tools + widget → Cloudflare Worker/Durable Object. Emphasize per-account model reasoning, deterministic fallback, and no operator API key.
 8. **2:43** — Show `npm run verify`, repository, and live app URL. Close by 2:55.

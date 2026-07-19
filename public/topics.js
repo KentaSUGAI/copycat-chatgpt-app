@@ -11,6 +11,7 @@ const LANG_NAMES_EN = { ja: "Japanese", en: "English", zh: "Simplified Chinese",
 
 const TOPICS = [
   {
+    id: "animals",
     title: { ja: "動物", en: "Animals", zh: "动物", ko: "동물", es: "Animales" },
     words: [
       { ja: "ライオン", en: "Lion", zh: "狮子", ko: "사자", es: "León" },
@@ -32,6 +33,7 @@ const TOPICS = [
     ],
   },
   {
+    id: "food",
     title: { ja: "食べ物", en: "Food", zh: "食物", ko: "음식", es: "Comida" },
     words: [
       { ja: "ピザ", en: "Pizza", zh: "披萨", ko: "피자", es: "Pizza" },
@@ -53,6 +55,7 @@ const TOPICS = [
     ],
   },
   {
+    id: "sports",
     title: { ja: "スポーツ", en: "Sports", zh: "运动", ko: "스포츠", es: "Deportes" },
     words: [
       { ja: "サッカー", en: "Soccer", zh: "足球", ko: "축구", es: "Fútbol" },
@@ -74,6 +77,7 @@ const TOPICS = [
     ],
   },
   {
+    id: "jobs",
     title: { ja: "職業", en: "Jobs", zh: "职业", ko: "직업", es: "Profesiones" },
     words: [
       { ja: "医者", en: "Doctor", zh: "医生", ko: "의사", es: "Médico" },
@@ -95,6 +99,7 @@ const TOPICS = [
     ],
   },
   {
+    id: "things-at-home",
     title: { ja: "家の中にあるもの", en: "Things at Home", zh: "家里的东西", ko: "집에 있는 것", es: "Cosas de casa" },
     words: [
       { ja: "冷蔵庫", en: "Fridge", zh: "冰箱", ko: "냉장고", es: "Nevera" },
@@ -116,6 +121,7 @@ const TOPICS = [
     ],
   },
   {
+    id: "fruits",
     title: { ja: "果物", en: "Fruits", zh: "水果", ko: "과일", es: "Frutas" },
     words: [
       { ja: "りんご", en: "Apple", zh: "苹果", ko: "사과", es: "Manzana" },
@@ -137,6 +143,7 @@ const TOPICS = [
     ],
   },
   {
+    id: "instruments",
     title: { ja: "楽器", en: "Instruments", zh: "乐器", ko: "악기", es: "Instrumentos" },
     words: [
       { ja: "ピアノ", en: "Piano", zh: "钢琴", ko: "피아노", es: "Piano" },
@@ -158,6 +165,7 @@ const TOPICS = [
     ],
   },
   {
+    id: "vehicles",
     title: { ja: "乗り物", en: "Vehicles", zh: "交通工具", ko: "탈것", es: "Vehículos" },
     words: [
       { ja: "電車", en: "Train", zh: "火车", ko: "기차", es: "Tren" },
@@ -179,6 +187,7 @@ const TOPICS = [
     ],
   },
   {
+    id: "school",
     title: { ja: "学校", en: "School", zh: "学校", ko: "학교", es: "Escuela" },
     words: [
       { ja: "黒板", en: "Blackboard", zh: "黑板", ko: "칠판", es: "Pizarra" },
@@ -200,6 +209,7 @@ const TOPICS = [
     ],
   },
   {
+    id: "countries",
     title: { ja: "国", en: "Countries", zh: "国家", ko: "나라", es: "Países" },
     words: [
       { ja: "日本", en: "Japan", zh: "日本", ko: "일본", es: "Japón" },

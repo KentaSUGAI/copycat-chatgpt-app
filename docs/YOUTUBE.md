@@ -26,6 +26,8 @@ How Codex & GPT-5.6 are used:
   operator inference cost.
 • localize_copycat lets ChatGPT render the whole widget in any language on
   demand.
+• Public hints from other languages are translated by each participant's own
+  ChatGPT and shown beside the original, with no backend model API.
 • The app itself was built during Build Week with Codex — game state machine,
   multilingual UI, E2E tests, and the mascot.
 

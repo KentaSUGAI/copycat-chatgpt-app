@@ -103,7 +103,7 @@ async function testStaticAndMcp() {
   assert.equal(tools.result.tools[0]._meta["openai/widgetAccessible"], true);
   assert.deepEqual(
     tools.result.tools.map((tool) => tool.name),
-    ["open_copycat", "get_copycat_cpu_turn", "submit_copycat_cpu_turn", "localize_copycat"],
+    ["open_copycat", "get_copycat_cpu_turn", "submit_copycat_cpu_turn", "translate_copycat_hints", "localize_copycat"],
   );
   const home = await rpc("tools/call", { name: "open_copycat", arguments: {} }, 5);
   assert.equal(home.result.structuredContent.mode, "home");
@@ -335,6 +335,25 @@ async function testBuiltinRound() {
   await Promise.all(players.map((player) => player.waitForPhase("vote", 1)));
   assert.ok(players.every((player) => player.state.hints.length === 3));
   assert.ok(players.every((player) => player.state.hints.every((hint) => hint.isAI === false)));
+  assert.equal(players[0].state.hints.find((hint) => hint.pid === "p2").sourceLang, "en");
+
+  const translated = await rpc("tools/call", {
+    name: "translate_copycat_hints",
+    arguments: {
+      room_code: code,
+      requester_pid: "p1",
+      target_locale: "ja",
+      translations: [
+        { pid: "p2", translation: "ヒント1" },
+        { pid: "p3", translation: "ヒント2" },
+      ],
+    },
+  }, 70);
+  assert.equal(translated.result.structuredContent.accepted, 2);
+  await players[0].waitFor((message) => message.type === "state" &&
+    message.state.hints?.find((hint) => hint.pid === "p2")?.translatedWord === "ヒント1");
+  assert.equal(players[0].state.hints.find((hint) => hint.pid === "p3").translatedWord, "ヒント2");
+  assert.equal(players[1].state.hints.find((hint) => hint.pid === "p3").translatedWord, null);
 
   for (const player of players) {
     const target = player === copycat ? citizens[0].pid : copycat.pid;

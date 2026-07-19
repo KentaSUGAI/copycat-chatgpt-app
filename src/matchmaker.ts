@@ -25,7 +25,11 @@ const MATCH_SIZE = 3;
 const QUEUE_TTL_MS = 2 * 60 * 1000;
 const RESULT_TTL_MS = 5 * 60 * 1000;
 const CPU_FALLBACK_MS = 10 * 1000;
-const SUPPORTED_LANGS = new Set(["ja", "en", "zh", "ko", "es"]);
+
+function validLang(value: unknown): string {
+  const lang = typeof value === "string" ? value.trim().slice(0, 35) : "";
+  return /^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$/.test(lang) ? lang.toLowerCase() : "en";
+}
 
 function freshState(): MatchState {
   return { queue: [], results: {} };
@@ -78,7 +82,7 @@ export class Matchmaker extends DurableObject<Env> {
 
     const pid = typeof body.pid === "string" ? body.pid.slice(0, 40) : "";
     const name = typeof body.name === "string" ? body.name.trim().slice(0, 12) : "";
-    const lang = typeof body.lang === "string" && SUPPORTED_LANGS.has(body.lang) ? body.lang : "en";
+    const lang = validLang(body.lang);
     if (!pid || !name) return json({ error: "pid_and_name_required" }, 400);
 
     const cpuRequested = body.cpu === true;

@@ -1,4 +1,5 @@
 import type { Env } from "./index";
+import { BUILTIN_TOPIC_COUNT } from "./topics";
 
 // ChatGPT Apps SDK 用の最小MCPサーバー実装(Streamable HTTP / JSON-RPC)。
 // ChatGPTの「開発者モード → コネクタ追加」で https://<worker>/mcp を登録すると、
@@ -109,11 +110,12 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
       return rpcResult(id, {
         protocolVersion: PROTOCOL_VERSION,
         capabilities: { tools: {}, resources: {} },
-        serverInfo: { name: "copycat", version: "2.1.0" },
+        serverInfo: { name: "copycat", version: "2.2.0" },
         instructions:
           "Open COPYCAT when the user asks to play COPYCAT or a multilingual social-deduction game. " +
           "Use action=home for matchmaking, action=private for a private room, or room_code to join friends. " +
           "When the widget asks you to operate ChatGPT CPU players, repeatedly call get_copycat_cpu_turn and submit_copycat_cpu_turn until pending is false. " +
+          "When the widget asks you to translate public hints, translate only those hints and call translate_copycat_hints once. " +
           "When asked to translate the widget, call localize_copycat with translated UI strings while preserving placeholders and HTML tags.",
       });
 
@@ -198,6 +200,39 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
             _meta: modelOnlyMeta(),
           },
           {
+            name: "translate_copycat_hints",
+            title: "Translate public COPYCAT hints",
+            description:
+              "Store concise translations of the current round's public hints for one player. Use only when the widget supplies the room code, requester pid, target locale, and original hints. Preserve player ids exactly, translate only hint text, and never reveal roles or secret information.",
+            inputSchema: {
+              type: "object",
+              properties: {
+                room_code: { type: "string", description: "Four-character COPYCAT room code." },
+                requester_pid: { type: "string", description: "The requesting player's exact pid." },
+                target_locale: { type: "string", description: "BCP 47 locale requested by that player." },
+                translations: {
+                  type: "array",
+                  minItems: 1,
+                  maxItems: 10,
+                  items: {
+                    type: "object",
+                    properties: {
+                      pid: { type: "string", description: "Exact pid of the hint author." },
+                      translation: { type: "string", description: "Concise translated hint, maximum 40 characters." },
+                    },
+                    required: ["pid", "translation"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ["room_code", "requester_pid", "target_locale", "translations"],
+              additionalProperties: false,
+            },
+            securitySchemes: [{ type: "noauth" }],
+            annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+            _meta: modelOnlyMeta(),
+          },
+          {
             name: "localize_copycat",
             title: "Translate the COPYCAT widget",
             description:
@@ -212,7 +247,7 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
                 topic_copy: {
                   type: "object",
                   properties: {
-                    builtinId: { type: "integer", minimum: 0, maximum: 9 },
+                    builtinId: { type: "integer", minimum: 0, maximum: BUILTIN_TOPIC_COUNT - 1 },
                     title: { type: "string" },
                     words: { type: "array", items: { type: "string" }, minItems: 16, maxItems: 16 },
                   },
@@ -263,6 +298,26 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
         });
       }
 
+      if (params?.name === "translate_copycat_hints") {
+        const code = validRoomCode(params?.arguments?.room_code);
+        if (!code) return rpcError(id, -32602, "room_code must be four characters");
+        const response = await roomStub(env, code).fetch("https://do/hint-translations", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            requesterPid: params?.arguments?.requester_pid,
+            targetLocale: params?.arguments?.target_locale,
+            translations: params?.arguments?.translations,
+          }),
+        });
+        const result = await response.json();
+        if (!response.ok) return rpcError(id, -32602, JSON.stringify(result));
+        return rpcResult(id, {
+          content: [{ type: "text", text: `Translated ${(result as any).accepted} public hints for ${(result as any).targetLocale}.` }],
+          structuredContent: result,
+        });
+      }
+
       if (params?.name === "localize_copycat") {
         const rawCode = params?.arguments?.room_code;
         const code = rawCode ? validRoomCode(rawCode) : "";
@@ -276,7 +331,7 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
         const rawTopic = params?.arguments?.topic_copy;
         const topicCopy = rawTopic && Array.isArray(rawTopic.words) && rawTopic.words.length === 16
           ? {
-              builtinId: Math.max(0, Math.min(9, Number(rawTopic.builtinId) || 0)),
+              builtinId: Math.max(0, Math.min(BUILTIN_TOPIC_COUNT - 1, Number(rawTopic.builtinId) || 0)),
               title: String(rawTopic.title || "").slice(0, 80),
               words: rawTopic.words.map((word: unknown) => String(word).slice(0, 40)),
             }

@@ -1,0 +1,4 @@
+interface:
+  display_name: "COPYCATお題追加"
+  short_description: "COPYCATの多言語お題カードを検証・同期して安全に追加します"
+  default_prompt: "Use $add-copycat-topics to add a multilingual topic card to COPYCAT and validate it."

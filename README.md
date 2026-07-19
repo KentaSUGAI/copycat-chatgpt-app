@@ -9,6 +9,7 @@ Built for the **OpenAI Build Week 2026** “Apps for Your Life” track with Cod
 ## Why COPYCAT
 
 - **Cross-language multiplayer:** the server sends card and word indexes, and each client renders the same game in its own language.
+- **Per-player hint translation:** after all hints are public, each participant's ChatGPT translates foreign-language hints into that participant's language. The room caches each locale separately and always shows the original beside the translation.
 - **Four ways to play:** global human matchmaking, private rooms, instant rule-based CPU practice, or ChatGPT-controlled LLM CPUs.
 - **Private rooms:** create a four-character room code for friends and support 3–10 players.
 - **Player-funded intelligence:** ask the current ChatGPT conversation for a subtle hint or let that same ChatGPT operate two LLM CPU players through MCP turn tools. The game server never calls a model API.
@@ -47,6 +48,7 @@ ChatGPT
 Cloudflare Worker
   ├─ /mcp                 Streamable HTTP MCP server
   │    ├─ open_copycat / localize_copycat
+  │    ├─ translate_copycat_hints
   │    └─ get_copycat_cpu_turn / submit_copycat_cpu_turn
   ├─ /api/match           Three-player matchmaking + CPU fallback
   ├─ /ws/:code            Realtime room state
@@ -59,6 +61,7 @@ The MCP tools follow the current MCP Apps metadata shape: `_meta.ui.resourceUri`
 
 - **Rule CPU** is deterministic server code. It is instant, costs zero model tokens, and guarantees the judge can complete a round alone.
 - **ChatGPT CPU** is selected explicitly. The widget asks the player's current ChatGPT to read one private CPU turn and submit only the final hint, vote, or guess through MCP. No hidden reasoning is exposed to the game or other players.
+- **Hint translation** begins when the hint phase closes. Only public hint text, player ids, and source locales are sent to that participant's ChatGPT; roles and the secret word are excluded. Translations are cached per room, round, and target locale while the original remains visible.
 - ChatGPT CPU turns may require tapping **Let ChatGPT play the CPU turns** as each phase becomes ready. A widget can ask the host to post a follow-up message, but it cannot silently capture arbitrary model output as if it were a direct model API response.
 
 ## Run locally
@@ -85,6 +88,15 @@ Run the complete type, syntax, MCP, matchmaking, CPU, WebSocket, private-room, s
 ```bash
 npm run verify
 ```
+
+Built-in topic cards have one canonical source in `public/topics.js`. Each card has a stable kebab-case id, five parallel translations, and exactly 16 indexed words. After appending a card, synchronize and validate the generated server deck:
+
+```bash
+npm run topics:sync
+npm run topics:check
+```
+
+The repository-local `$add-copycat-topics` skill in `.agents/skills/add-copycat-topics` documents the complete safe authoring workflow.
 
 You can also run the E2E test against an already-running Worker:
 
@@ -134,7 +146,7 @@ src/
   matchmaker.ts   Matchmaker Durable Object and CPU fallback
   room.ts         GameRoom Durable Object and game state machine
   mcp.ts          ChatGPT MCP server and widget resource
-  topics.ts       Server-side built-in card count
+  topics.ts       Generated English server deck (do not edit by hand)
 public/
   index.html      Widget entry
   app.js          ChatGPT bridge, WebSocket, and UI
@@ -144,6 +156,10 @@ public/
 tests/
   run-e2e.mjs     One-command local Worker test harness
   e2e.mjs         MCP and multiplayer E2E suite
+scripts/
+  sync-topics.mjs Validate the canonical decks and generate src/topics.ts
+.agents/skills/
+  add-copycat-topics/ Repository-local topic authoring skill
 ```
 
 ## License

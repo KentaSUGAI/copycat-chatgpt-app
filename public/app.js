@@ -43,6 +43,11 @@ function detectLang() {
 }
 let LANG = detectLang();
 
+function gameLang() {
+  const lang = String(LANG || "en").trim().slice(0, 35);
+  return /^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$/.test(lang) ? lang.toLowerCase() : "en";
+}
+
 function t(key, vars) {
   let s = (CUSTOM_COPY && CUSTOM_COPY[key]) ?? (I18N[LANG] && I18N[LANG][key]) ?? I18N.en[key] ?? key;
   if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
@@ -80,6 +85,7 @@ const S = {
   joinError: null,
   reconnectTimer: null,
   matchTimer: null,
+  translationRequests: new Set(),
   match: { ticket: null, players: 1, needed: 2, status: "idle", fallbackInMs: 10000, cpuPlayers: 0 },
 };
 
@@ -126,6 +132,37 @@ async function requestTranslation() {
     scrollToBottom: true,
   });
   toast(t("translateSent"));
+}
+
+function untranslatedHints() {
+  const target = gameLang();
+  return (S.room?.hints || []).filter((hint) =>
+    hint.pid !== S.you?.pid && hint.sourceLang && hint.sourceLang !== target && !hint.translatedWord);
+}
+
+async function requestHintTranslations(force = false) {
+  if (!window.openai || typeof window.openai.sendFollowUpMessage !== "function" || !S.code || !S.you) return;
+  const hints = untranslatedHints();
+  if (!hints.length) return;
+  const key = `${S.code}:${S.room.round}:${gameLang()}`;
+  if (!force && S.translationRequests.has(key)) return;
+  S.translationRequests.add(key);
+  render();
+  const languageName = (LANG === CUSTOM_LOCALE && CUSTOM_LANGUAGE_NAME) || LANG_NAMES_EN[LANG] || LANG;
+  try {
+    await window.openai.sendFollowUpMessage({
+      prompt: `Translate the public one-word hints in COPYCAT room ${S.code} into ${languageName} (${gameLang()}). Preserve names and player ids; do not explain or reveal roles. Call translate_copycat_hints exactly once with room_code=${S.code}, requester_pid=${S.you.pid}, target_locale=${gameLang()}, and one translation for every supplied foreign-language hint. Keep each translation concise and natural for the game. Hints JSON: ${JSON.stringify(hints.map((hint) => ({ pid: hint.pid, source_locale: hint.sourceLang, original: hint.word })))}`,
+      scrollToBottom: false,
+    });
+    toast(t("hintTranslationSent"));
+  } catch {
+    S.translationRequests.delete(key);
+    render();
+  }
+}
+
+function maybeRequestHintTranslations() {
+  if (["vote", "guess", "reveal"].includes(S.room?.phase)) void requestHintTranslations(false);
 }
 
 // ---- WebSocket ----------------------------------------------------------------
@@ -179,7 +216,7 @@ function connect() {
   S.ws = ws;
   ws.onopen = () => {
     S.wsAlive = true;
-    ws.send(JSON.stringify({ type: "hello", pid: myPid, name: myName || "?", lang: I18N[LANG] ? LANG : "en" }));
+    ws.send(JSON.stringify({ type: "hello", pid: myPid, name: myName || "?", lang: gameLang() }));
     render();
   };
   ws.onmessage = (ev) => {
@@ -189,6 +226,7 @@ function connect() {
       S.room = msg.state;
       S.you = msg.you;
       render();
+      maybeRequestHintTranslations();
     } else if (msg.type === "toast") {
       toast(msg.code ? t(msg.code) : msg.message);
     } else if (msg.type === "reject") {
@@ -228,7 +266,7 @@ async function startMatchmaking(mode = "online") {
     const response = await fetch(`${ORIGIN}/api/match`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ pid: myPid, name: myName, lang: I18N[LANG] ? LANG : "en", cpu, cpuMode: mode === "chatgpt" ? "chatgpt" : "rule" }),
+      body: JSON.stringify({ pid: myPid, name: myName, lang: gameLang(), cpu, cpuMode: mode === "chatgpt" ? "chatgpt" : "rule" }),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || t("matchFail"));
@@ -537,6 +575,25 @@ function roleBanner() {
     <span class="small">${esc(t("secretNote"))}</span></div>`;
 }
 
+function hintCopyHtml(hint) {
+  if (!hint.translatedWord) return `<span class="hint-copy"><span class="word">"${esc(hint.word)}"</span></span>`;
+  const sourceName = LANG_NAMES[hint.sourceLang] || hint.sourceLang;
+  return `<span class="hint-copy">
+    <span class="word">"${esc(hint.translatedWord)}"</span>
+    <span class="hint-original">${esc(t("originalHint", { word: hint.word, language: sourceName }))}</span>
+  </span>`;
+}
+
+function hintTranslationControl() {
+  if (!untranslatedHints().length) return "";
+  const key = `${S.code}:${S.room.round}:${gameLang()}`;
+  const requested = S.translationRequests.has(key);
+  return `<div class="translation-control" role="status">
+    <span>${esc(t(requested ? "hintTranslationWorking" : "hintTranslationAvailable"))}</span>
+    <button class="text-button" data-action="translate-hints">${esc(t(requested ? "retryTranslation" : "translateHints"))}</button>
+  </div>`;
+}
+
 function viewHint() {
   const r = S.room, y = S.you;
   const mine = r.players.find((p) => p.pid === y.pid);
@@ -574,11 +631,12 @@ function viewVote() {
         ${(r.hints || []).map((h) => {
           const self = h.pid === y.pid;
           return `<div class="hint-card ${!voted && !self ? "votable" : ""}" ${!voted && !self ? `data-action="vote" data-pid="${esc(h.pid)}"` : ""}>
-            <span class="word">"${esc(h.word)}"</span>
+            ${hintCopyHtml(h)}
             <span class="by">${esc(h.name)}${h.isAI ? ` · ${esc(t("cpuTag"))}` : ""}${self ? esc(t("selfMark")) : ""}</span>
           </div>`;
         }).join("")}
       </div>
+      ${hintTranslationControl()}
       ${voted ? `<div class="waiting">${esc(t("votedWait"))}</div>` : ""}
       ${hasPendingChatGptCpu(r) ? chatGptCpuControl() : ""}
     </div>
@@ -603,8 +661,9 @@ function viewGuess() {
     `}
     <div class="card">
       <div class="hint-list">
-        ${(r.hints || []).map((h) => `<div class="hint-card"><span class="word">"${esc(h.word)}"</span><span class="by">${esc(h.name)}</span></div>`).join("")}
+        ${(r.hints || []).map((h) => `<div class="hint-card">${hintCopyHtml(h)}<span class="by">${esc(h.name)}</span></div>`).join("")}
       </div>
+      ${hintTranslationControl()}
     </div>
   `;
 }
@@ -644,13 +703,14 @@ function viewReveal() {
         ${(r.hints || []).map((h) => {
           const n = Object.values(r.votes || {}).filter((v) => v === h.pid).length;
           return `<div class="hint-card ${h.pid === r.chameleon ? "was-copycat" : ""}">
-            <span class="word">"${esc(h.word)}"</span>
+            ${hintCopyHtml(h)}
             ${h.pid === r.chameleon ? "😼" : ""}
             <span class="by">${esc(h.name)}</span>
             ${n ? `<span class="votes">${esc(t("votesN", { n }))}</span>` : ""}
           </div>`;
         }).join("")}
       </div>
+      ${hintTranslationControl()}
     </div>
     ${y.isHost ? `<button class="primary wide" data-action="start">${esc(t("nextRound"))}</button>`
                : `<div class="waiting">${esc(t("waitingNext"))}</div>`}
@@ -704,6 +764,7 @@ document.addEventListener("click", (ev) => {
   else if (a === "cpu-match") startMatchmaking("rule");
   else if (a === "chatgpt-cpu-match") startMatchmaking("chatgpt");
   else if (a === "run-chatgpt-cpu") requestChatGptCpuTurn();
+  else if (a === "translate-hints") requestHintTranslations(true);
   else if (a === "translate") requestTranslation();
   else if (a === "cancel-match") cancelMatchmaking();
   else if (a === "join-prepared") joinRoom(el.dataset.code);
@@ -727,7 +788,7 @@ document.addEventListener("change", (ev) => {
   if (langSel) {
     LANG = langSel.value;
     store.set("cc_lang", LANG);
-    if (S.screen === "game") wsSend({ type: "language", lang: I18N[LANG] ? LANG : "en" });
+    if (S.screen === "game") wsSend({ type: "language", lang: gameLang() });
     render();
     return;
   }

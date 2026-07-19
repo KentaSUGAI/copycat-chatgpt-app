@@ -239,12 +239,19 @@ button.ghost { font-weight: 600; color: var(--accent-deep); }
   transition: box-shadow .15s ease, transform .15s ease;
 }
 .hint-card .word { font-size: 17px; font-weight: 800; color: var(--head); }
+.hint-copy { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.hint-original { color: var(--muted); font-size: 11px; line-height: 1.35; }
 .hint-card .by { margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
 .hint-card.votable { cursor: pointer; }
 .hint-card.votable:hover { transform: translateY(-2px); box-shadow: var(--raise), inset 0 0 0 2px #e75f8333; }
 .hint-card.votable:active { transform: translateY(1px) scale(.98); box-shadow: var(--sunk-sm); }
 .hint-card.was-copycat { box-shadow: var(--sunk-sm), inset 0 0 0 2px #e9a23b66; }
 .hint-card .votes { font-size: 12px; color: var(--danger); font-weight: 800; white-space: nowrap; }
+.translation-control {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-top: 12px; color: var(--muted); font-size: 12px;
+}
+.translation-control .text-button { flex: 0 0 auto; min-height: 36px; padding: 7px 10px; }
 
 /* ---- 結果バナー ---------------------------------------------------------------- */
 

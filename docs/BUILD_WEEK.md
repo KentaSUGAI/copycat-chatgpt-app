@@ -35,6 +35,15 @@ Codex with GPT-5.6 was used for implementation, architecture review, documentati
 
 The human entrant made the defining product and engineering decisions: the game concept, intended audience, category, privacy boundary, cross-language index protocol, deployment platform, and cost model. Codex proposed and implemented changes under those constraints; the entrant reviewed the resulting behavior.
 
+## July 20, 2026 — Realtime hint translation and extensibility
+
+- Added `translate_copycat_hints`, a model-only MCP tool that stores public hint translations per player locale without exposing roles or the secret word.
+- Added automatic translation requests when the hint phase closes, original-plus-translation UI, retry behavior, and per-round translation caching in the room Durable Object.
+- Preserved the cost boundary: every translation is performed by that participant's current ChatGPT account; the Worker still makes no model API calls and needs no API key.
+- Made `public/topics.js` the canonical card source, added stable card ids, and generated `src/topics.ts` through a validator that enforces five languages, 16 aligned words, and duplicate checks.
+- Added the repository-local `$add-copycat-topics` skill and extended E2E coverage to verify that translations are delivered only to the requested player's locale.
+- Passed `npm run verify` with all topic, type, syntax, MCP, matchmaking, CPU, private-room, translation, scoring, and replay checks.
+
 ## Evidence to retain
 
 - The Codex task containing the majority of the core implementation; run `/feedback` in that task and save its Session ID for Devpost.
