@@ -75,5 +75,5 @@ chatgpt-apps, apps-sdk, mcp, cloudflare-workers, durable-objects, websocket, jav
 - [x] Register the permanent deployed `/mcp` endpoint in ChatGPT and complete an in-ChatGPT CPU round smoke test
 - [x] Run `npm run verify` once more from a clean checkout of the public GitHub repository
 - [ ] Record a demo shorter than three minutes and publish it on YouTube
-- [ ] Add the repository URL above (the permanent live app and MCP URLs are already included)
+- [x] Add the public repository URL above and to the Devpost public project page
 - [ ] Submit through Devpost (overview, details, category, judge instructions, repo target, and feedback ID are saved; final submit remains)
