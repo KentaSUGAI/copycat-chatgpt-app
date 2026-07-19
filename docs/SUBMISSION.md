@@ -69,7 +69,7 @@ chatgpt-apps, apps-sdk, mcp, cloudflare-workers, durable-objects, websocket, jav
 - [x] Add the Codex session ID required by the event rules (`019f777c-901a-7c92-ad59-a07a92f58320`)
 - [x] Add an English README, MIT license, judge test path, and dated Codex development record
 - [x] Pass type/syntax checks and the full local MCP/WebSocket E2E suite
-- [ ] Push the repository to `https://github.com/KentaSUGAI/copycat-chatgpt-app`
+- [x] Push the repository to `https://github.com/KentaSUGAI/copycat-chatgpt-app`
 - [x] Run `npx wrangler login` and `npm run deploy`
 - [x] Pass the complete MCP/WebSocket E2E suite against the permanent production URL
 - [x] Register the permanent deployed `/mcp` endpoint in ChatGPT and complete an in-ChatGPT CPU round smoke test
