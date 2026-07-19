@@ -1,0 +1,21 @@
+{
+  // AIカメレオン — Cloudflare Workers 無料枠だけで動く構成
+  "name": "copycat-chatgpt-app",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "ROOM", "class_name": "GameRoom" },
+      { "name": "MATCH", "class_name": "Matchmaker" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["GameRoom"] },
+    { "tag": "v2", "new_sqlite_classes": ["Matchmaker"] }
+  ],
+  "observability": { "enabled": true }
+}
