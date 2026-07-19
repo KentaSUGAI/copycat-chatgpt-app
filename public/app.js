@@ -278,8 +278,16 @@ async function pollMatchmaking() {
     const response = await fetch(`${ORIGIN}/api/match/${S.match.ticket}`, { cache: "no-store" });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "expired");
+    S.match.pollFails = 0;
     handleMatchStatus(data);
   } catch {
+    // 一時的な失敗(電波・タイミング)で即諦めない
+    S.match.pollFails = (S.match.pollFails || 0) + 1;
+    if (S.match.pollFails <= 2 && S.screen === "matching" && S.match.ticket) {
+      clearTimeout(S.matchTimer);
+      S.matchTimer = setTimeout(pollMatchmaking, 1100);
+      return;
+    }
     cancelMatchmaking(false);
     toast(t("matchExpired"));
   }

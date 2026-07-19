@@ -107,21 +107,34 @@ export class Matchmaker extends DurableObject<Env> {
     }
 
     if (!cpuRequested && this.state.queue.length >= MATCH_SIZE) {
-      const group = this.state.queue.splice(0, MATCH_SIZE);
-      const code = await this.createRoom(0, group[0]?.lang ?? lang, "rule");
-      if (!code) {
-        this.state.queue.unshift(...group);
+      // グループ確定〜部屋作成〜結果記録は原子的に行う。createRoomのawait中に
+      // 入力ゲートが開き、他プレイヤーのポーリングが「キューにも結果にも無い」
+      // 瞬間を観測して404(expired)になるレースを防ぐ。
+      const ok = await this.ctx.blockConcurrencyWhile(() => this.formGroup(0, lang, "rule"));
+      if (!ok) {
         await this.save();
         return json({ error: "room_creation_failed" }, 503);
-      }
-      const expiresAt = Date.now() + RESULT_TTL_MS;
-      for (const matchedEntry of group) {
-        this.state.results[matchedEntry.ticket] = { code, expiresAt, cpuPlayers: 0, cpuMode: null };
       }
     }
 
     await this.save();
     return this.status(ticket);
+  }
+
+  /** 先頭MATCH_SIZE件(不足分はCPU)で部屋を作り、全チケットに結果を書く。呼び出し側でblockConcurrencyWhile必須 */
+  private async formGroup(minCpu: number, fallbackLang: string, cpuMode: "rule" | "chatgpt"): Promise<boolean> {
+    const group = this.state.queue.splice(0, MATCH_SIZE);
+    const cpuPlayers = Math.max(minCpu, MATCH_SIZE - group.length);
+    const code = await this.createRoom(cpuPlayers, group[0]?.lang ?? fallbackLang, cpuMode);
+    if (!code) {
+      this.state.queue.unshift(...group);
+      return false;
+    }
+    const expiresAt = Date.now() + RESULT_TTL_MS;
+    for (const entry of group) {
+      this.state.results[entry.ticket] = { code, expiresAt, cpuPlayers, cpuMode: cpuPlayers ? cpuMode : null };
+    }
+    return true;
   }
 
   private async status(ticket: string): Promise<Response> {
@@ -130,16 +143,12 @@ export class Matchmaker extends DurableObject<Env> {
 
     const queued = this.state.queue.find((entry) => entry.ticket === ticket);
     if (queued && Date.now() - queued.joinedAt >= CPU_FALLBACK_MS) {
-      const group = this.state.queue.splice(0, MATCH_SIZE);
-      const cpuPlayers = Math.max(0, MATCH_SIZE - group.length);
-      const code = await this.createRoom(cpuPlayers, group[0]?.lang ?? queued.lang, "rule");
-      if (!code) {
-        this.state.queue.unshift(...group);
+      // enqueue側と同じレース対策(blockConcurrencyWhileで原子化)
+      const ok = await this.ctx.blockConcurrencyWhile(() => this.formGroup(0, queued.lang, "rule"));
+      if (!ok) {
         await this.save();
         return json({ error: "room_creation_failed" }, 503);
       }
-      const expiresAt = Date.now() + RESULT_TTL_MS;
-      for (const entry of group) this.state.results[entry.ticket] = { code, expiresAt, cpuPlayers, cpuMode: cpuPlayers ? "rule" : null };
       await this.save();
       return this.matched(ticket, this.state.results[ticket]);
     }
