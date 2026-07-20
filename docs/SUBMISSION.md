@@ -1,7 +1,8 @@
-# OpenAI Build Week — Submission Draft
+# OpenAI Build Week — Submitted Entry
 
-> Devpost入力用ドラフト。〆切: **2026-07-21 17:00 PT（日本時間 7/22 09:00）**
+> **2026-07-20 提出完了。** 〆切: **2026-07-21 17:00 PT（日本時間 7/22 09:00）**
 > 提出物: 3分以内の公開動画、リポジトリ、README、CodexセッションID、テスト用URL
+> 公開ページ: https://devpost.com/software/copycat-a-multilingual-party-game-inside-chatgpt
 
 ## Project name
 
@@ -80,4 +81,4 @@ chatgpt-apps, apps-sdk, mcp, cloudflare-workers, durable-objects, websocket, jav
 - [x] Record a demo shorter than three minutes (`~/Downloads/COPYCAT-demo.mp4`, 2:07, narrated in English, includes the per-player hint-translation feature; upload metadata in `docs/YOUTUBE.md`)
 - [x] Upload the demo to YouTube as **Public** (`https://youtu.be/nNtECjvOBXA`)
 - [x] Add the public repository URL above and to the Devpost public project page
-- [ ] Submit through Devpost (overview, details, category, judge instructions, repo target, and feedback ID are saved; final submit remains)
+- [x] Submit through Devpost with Japan as the country of residence; verify the public page shows “Project submitted!” and “Submitted to OpenAI Build Week”
