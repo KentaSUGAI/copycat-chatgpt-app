@@ -47,6 +47,8 @@ The human entrant made the defining product and engineering decisions: the game 
 ## Evidence to retain
 
 - The Codex task containing the majority of the core implementation; run `/feedback` in that task and save its Session ID for Devpost.
+- Primary submitted Codex Session ID: `019f7a47-ad85-76d2-a22c-9086b8be71ca`.
+- Public demo video: https://youtu.be/nNtECjvOBXA
 - This dated record and the source file timestamps.
 - The final Git commit history created before submission.
 - The successful `npm run verify` output and, if useful, a screenshot of the three-language demo.

@@ -3,6 +3,7 @@
 ファイル: `~/Downloads/COPYCAT-demo.mp4`(2:07 / 1080p / 12.8MB)
 サムネイル(任意): `~/Downloads/COPYCAT-thumbnail.png`
 公開設定: **公開(Public)** — Build Weekの要件。限定公開は不可。
+公開URL: https://youtu.be/nNtECjvOBXA
 
 ## Title
 
@@ -47,9 +48,9 @@ by three browsers in English, Japanese, and Korean.
 
 ## アップロード手順
 
-1. https://studio.youtube.com → 作成 → 動画をアップロード → `COPYCAT-demo.mp4`
+1. [x] https://studio.youtube.com → 作成 → 動画をアップロード → `COPYCAT-demo.mp4`
 2. タイトル・説明を上記からコピー
 3. 「いいえ、子ども向けではありません」を選択
 4. サムネイルに `COPYCAT-thumbnail.png`(任意)
-5. 公開範囲: **公開** → URLをコピー
+5. [x] 公開範囲: **公開** → `https://youtu.be/nNtECjvOBXA`
 6. DevpostのVideo欄に貼り付け → **Submit**(締切: 7/21 17:00 PT = 日本時間 7/22 09:00)

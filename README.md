@@ -25,6 +25,8 @@ Permanent deployment:
 - App host: https://copycat-chatgpt-app.kistame228.workers.dev
 - MCP endpoint: https://copycat-chatgpt-app.kistame228.workers.dev/mcp
 - Source: https://github.com/KentaSUGAI/copycat-chatgpt-app
+- Demo: https://youtu.be/nNtECjvOBXA
+- Codex session: `019f7a47-ad85-76d2-a22c-9086b8be71ca`
 
 1. Sign in to ChatGPT and enable the deployed COPYCAT MCP app.
 2. Ask: **“Let’s play COPYCAT.”**

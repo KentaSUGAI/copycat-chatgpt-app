@@ -41,7 +41,7 @@ COPYCAT is social deduction for 3–10 players. Everyone sees the same 16-word g
 - Codex added one-tap matchmaking and redesigned the widget with the Apple Design skill: clear hierarchy, immediate feedback, quiet translucent materials, dark mode, and reduced-motion support.
 - Codex used GPT Image to create the original COPYCAT mascot and integrated the alpha asset into the responsive widget.
 - Codex prepared a one-command judge verification path and aligned the MCP metadata, English README, license, and submission materials with the official Build Week rules.
-- [TODO: add the Codex session ID required by the submission]
+- Primary Codex `/feedback` Session ID: `019f7a47-ad85-76d2-a22c-9086b8be71ca`
 
 ## Built with
 
@@ -52,7 +52,8 @@ chatgpt-apps, apps-sdk, mcp, cloudflare-workers, durable-objects, websocket, jav
 - Live app: https://copycat-chatgpt-app.kistame228.workers.dev
 - MCP endpoint: https://copycat-chatgpt-app.kistame228.workers.dev/mcp
 - Repo: https://github.com/KentaSUGAI/copycat-chatgpt-app
-- Codex `/feedback` Session ID: `019f777c-901a-7c92-ad59-a07a92f58320`
+- Demo video: https://youtu.be/nNtECjvOBXA
+- Codex `/feedback` Session ID: `019f7a47-ad85-76d2-a22c-9086b8be71ca`
 - Requirement: a ChatGPT login with the COPYCAT app enabled. No API key or local bridge is needed.
 
 ## Demo video script (≤3 min)
@@ -68,7 +69,7 @@ chatgpt-apps, apps-sdk, mcp, cloudflare-workers, durable-objects, websocket, jav
 
 ## Submission checklist
 
-- [x] Add the Codex session ID required by the event rules (`019f777c-901a-7c92-ad59-a07a92f58320`)
+- [x] Add the Codex session ID required by the event rules (`019f7a47-ad85-76d2-a22c-9086b8be71ca`)
 - [x] Add an English README, MIT license, judge test path, and dated Codex development record
 - [x] Pass type/syntax checks and the full local MCP/WebSocket E2E suite
 - [x] Push the repository to `https://github.com/KentaSUGAI/copycat-chatgpt-app`
@@ -77,6 +78,6 @@ chatgpt-apps, apps-sdk, mcp, cloudflare-workers, durable-objects, websocket, jav
 - [x] Register the permanent deployed `/mcp` endpoint in ChatGPT and complete an in-ChatGPT CPU round smoke test
 - [x] Run `npm run verify` once more from a clean checkout of the public GitHub repository
 - [x] Record a demo shorter than three minutes (`~/Downloads/COPYCAT-demo.mp4`, 2:07, narrated in English, includes the per-player hint-translation feature; upload metadata in `docs/YOUTUBE.md`)
-- [ ] Upload the demo to YouTube as **Public** and paste the URL into Devpost
+- [x] Upload the demo to YouTube as **Public** (`https://youtu.be/nNtECjvOBXA`)
 - [x] Add the public repository URL above and to the Devpost public project page
 - [ ] Submit through Devpost (overview, details, category, judge instructions, repo target, and feedback ID are saved; final submit remains)
