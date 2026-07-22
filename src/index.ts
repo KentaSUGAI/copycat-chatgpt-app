@@ -8,6 +8,7 @@ export interface Env {
   ROOM: DurableObjectNamespace;
   MATCH: DurableObjectNamespace;
   ASSETS: Fetcher;
+  OPENAI_APPS_CHALLENGE?: string;
 }
 
 function json(data: unknown, status = 200): Response {
@@ -54,6 +55,17 @@ export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
 
+    if (url.pathname === "/.well-known/openai-apps-challenge" && req.method === "GET") {
+      const token = env.OPENAI_APPS_CHALLENGE?.trim();
+      if (!token) return new Response("Not configured", { status: 404 });
+      return new Response(token, {
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+          "cache-control": "no-store",
+        },
+      });
+    }
+
     // ChatGPT renders the widget on a sandboxed OpenAI origin. JSON POSTs to
     // the public Worker therefore require a successful CORS preflight before
     // matchmaking can begin inside the widget.
@@ -94,6 +106,16 @@ export default {
       }
       const stub = env.ROOM.get(env.ROOM.idFromName(wsMatch[1]));
       return stub.fetch(req);
+    }
+
+    const publicPage = {
+      "/privacy": "/privacy.html",
+      "/terms": "/terms.html",
+      "/support": "/support.html",
+    }[url.pathname];
+    if (publicPage && (req.method === "GET" || req.method === "HEAD")) {
+      const assetUrl = new URL(publicPage, url.origin);
+      return env.ASSETS.fetch(new Request(assetUrl, req));
     }
 
     // 静的アセットはChatGPTウィジェット用。通常ブラウザでは案内だけを表示する。

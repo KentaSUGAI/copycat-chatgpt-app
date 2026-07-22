@@ -422,6 +422,11 @@ function viewHome() {
           <h2>${esc(t("chatgptOnlyTitle"))}</h2>
           <div class="small">${esc(t("chatgptOnlyBody"))}</div>
         </div>
+        <nav class="legal-links" aria-label="COPYCAT information">
+          <a href="${ORIGIN}/support">Support</a>
+          <a href="${ORIGIN}/privacy">Privacy</a>
+          <a href="${ORIGIN}/terms">Terms</a>
+        </nav>
       </div>`;
   }
   const gptCode = window.openai && window.openai.toolOutput && window.openai.toolOutput.roomCode || "";

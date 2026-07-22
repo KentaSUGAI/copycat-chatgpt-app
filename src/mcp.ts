@@ -110,7 +110,7 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
       return rpcResult(id, {
         protocolVersion: PROTOCOL_VERSION,
         capabilities: { tools: {}, resources: {} },
-        serverInfo: { name: "copycat", version: "2.2.0" },
+        serverInfo: { name: "copycat", version: "2.3.0" },
         instructions:
           "Open COPYCAT when the user asks to play COPYCAT or a multilingual social-deduction game. " +
           "Use action=home for matchmaking, action=private for a private room, or room_code to join friends. " +
@@ -127,9 +127,9 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
         tools: [
           {
             name: "open_copycat",
-            title: "Play COPYCAT / COPYCATで遊ぶ",
+            title: "Play COPYCAT — Multilingual Party Game",
             description:
-              "一言ヒントで秘密ワードを知らない1人を探す多言語オンラインゲーム「COPYCAT」を開きます。通常はaction=homeで自動マッチング画面を表示します。友だち用の個室を作る場合はaction=private、既存の部屋へ入る場合はroom_codeを指定します。3人以上で遊べます。",
+              "Open COPYCAT, a multilingual 3–10 player social-deduction game where one player does not know the secret word. Use action=home for matchmaking or CPU practice, action=private to create a friends-only room, or room_code to join an existing room.",
             inputSchema: {
               type: "object",
               properties: {
@@ -152,7 +152,7 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
                 roomCode: { type: "string" },
                 locale: { type: "string" },
               },
-              required: ["mode", "roomCode"],
+              required: ["mode", "roomCode", "locale"],
               additionalProperties: false,
             },
             securitySchemes: [{ type: "noauth" }],
@@ -174,6 +174,42 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
               required: ["room_code"],
               additionalProperties: false,
             },
+            outputSchema: {
+              type: "object",
+              properties: {
+                pending: { type: "boolean" },
+                code: { type: "string" },
+                phase: { type: "string", enum: ["lobby", "hint", "vote", "guess", "reveal"] },
+                round: { type: "integer" },
+                cpu: {
+                  type: "object",
+                  properties: {
+                    pid: { type: "string" },
+                    name: { type: "string" },
+                    language: { type: "string" },
+                    role: { type: "string", enum: ["copycat", "citizen"] },
+                  },
+                  required: ["pid", "name", "language", "role"],
+                  additionalProperties: false,
+                },
+                topic: {
+                  type: "object",
+                  properties: {
+                    title: { type: "string" },
+                    words: { type: "array", items: { type: "string" }, minItems: 16, maxItems: 16 },
+                    secretIndex: { type: ["integer", "null"] },
+                    secretWord: { type: ["string", "null"] },
+                  },
+                  required: ["title", "words", "secretIndex", "secretWord"],
+                  additionalProperties: false,
+                },
+                hints: { type: "array", items: { type: "object", additionalProperties: true } },
+                players: { type: "array", items: { type: "object", additionalProperties: true } },
+                instruction: { type: "string" },
+              },
+              required: ["pending", "code", "phase"],
+              additionalProperties: false,
+            },
             securitySchemes: [{ type: "noauth" }],
             annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
             _meta: modelOnlyMeta(),
@@ -193,6 +229,15 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
                 guess_index: { type: "integer", minimum: 0, maximum: 15 },
               },
               required: ["room_code", "cpu_pid"],
+              additionalProperties: false,
+            },
+            outputSchema: {
+              type: "object",
+              properties: {
+                ok: { type: "boolean" },
+                phase: { type: "string", enum: ["lobby", "hint", "vote", "guess", "reveal"] },
+              },
+              required: ["ok", "phase"],
               additionalProperties: false,
             },
             securitySchemes: [{ type: "noauth" }],
@@ -228,6 +273,17 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
               required: ["room_code", "requester_pid", "target_locale", "translations"],
               additionalProperties: false,
             },
+            outputSchema: {
+              type: "object",
+              properties: {
+                ok: { type: "boolean" },
+                accepted: { type: "integer", minimum: 1, maximum: 10 },
+                targetLocale: { type: "string" },
+                phase: { type: "string", enum: ["vote", "guess", "reveal"] },
+              },
+              required: ["ok", "accepted", "targetLocale", "phase"],
+              additionalProperties: false,
+            },
             securitySchemes: [{ type: "noauth" }],
             annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
             _meta: modelOnlyMeta(),
@@ -256,6 +312,19 @@ export async function handleMcp(req: Request, origin: string, env: Env): Promise
                 },
               },
               required: ["locale", "language_name", "ui_copy"],
+              additionalProperties: false,
+            },
+            outputSchema: {
+              type: "object",
+              properties: {
+                mode: { type: "string", enum: ["home", "join"] },
+                roomCode: { type: "string" },
+                locale: { type: "string" },
+                languageName: { type: "string" },
+                uiCopy: { type: "object", additionalProperties: { type: "string" } },
+                topicCopy: { type: ["object", "null"], additionalProperties: true },
+              },
+              required: ["mode", "roomCode", "locale", "languageName", "uiCopy", "topicCopy"],
               additionalProperties: false,
             },
             securitySchemes: [{ type: "noauth" }],

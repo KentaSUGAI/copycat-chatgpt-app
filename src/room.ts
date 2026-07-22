@@ -53,6 +53,7 @@ interface Env {
 }
 
 const MAX_PLAYERS = 10;
+const ROOM_RETENTION_MS = 24 * 60 * 60 * 1000;
 const CPU_NAMES = ["Mochi", "Luna", "Sora", "Minto"];
 const CPU_HINTS: Record<string, string[]> = {
   ja: ["定番", "人気", "身近", "楽しい"],
@@ -103,6 +104,19 @@ export class GameRoom extends DurableObject<Env> {
 
   private async save() {
     await this.ctx.storage.put("game", this.game);
+    await this.ctx.storage.setAlarm(Date.now() + ROOM_RETENTION_MS);
+  }
+
+  async alarm() {
+    for (const socket of this.ctx.getWebSockets()) {
+      try {
+        socket.close(1001, "room expired");
+      } catch {
+        // The socket may already be closed.
+      }
+    }
+    this.game = freshGame();
+    await this.ctx.storage.deleteAll();
   }
 
   async fetch(req: Request): Promise<Response> {

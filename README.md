@@ -115,6 +115,18 @@ npm run deploy
 
 The current production connector URL is `https://copycat-chatgpt-app.kistame228.workers.dev/mcp`. Register it as a no-auth custom app in ChatGPT Developer mode. No OpenAI API key or client-side process is required.
 
+### Public ChatGPT distribution
+
+ChatGPT apps are now reviewed and published as MCP-backed plugins. The production-ready plugin metadata lives in `plugins/copycat`, and the complete portal copy, annotation justifications, domain-verification procedure, and required five positive plus three negative test cases live in [docs/PLUGIN_SUBMISSION.md](docs/PLUGIN_SUBMISSION.md).
+
+Public policy and support pages:
+
+- https://copycat-chatgpt-app.kistame228.workers.dev/privacy
+- https://copycat-chatgpt-app.kistame228.workers.dev/terms
+- https://copycat-chatgpt-app.kistame228.workers.dev/support
+
+After OpenAI approves the submission and the developer selects **Publish**, other ChatGPT users can install COPYCAT from its directory listing without Developer Mode. Until publication, external reviewers can use the production MCP URL in Developer Mode.
+
 ### Judge test path
 
 1. Open the submitted live `/mcp` URL as a custom connector in ChatGPT Developer mode.

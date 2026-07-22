@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="COPYCAT support and play instructions">
+  <title>Support — COPYCAT</title>
+  <link rel="stylesheet" href="/legal.css">
+</head>
+<body>
+  <div class="shell">
+    <a class="brand" href="/"><img src="/assets/copycat-mascot-512.png" alt="">COPYCAT</a>
+    <main>
+      <h1>Support</h1>
+      <p class="lede">COPYCAT runs inside ChatGPT. It does not require a COPYCAT account, API key, browser bridge, local server, or separate login.</p>
+
+      <h2>How to play</h2>
+      <ol>
+        <li>Install or enable COPYCAT from ChatGPT's Plugins Directory.</li>
+        <li>Start a new chat and ask, “Let’s play COPYCAT.”</li>
+        <li>Enter a nickname, then choose online matchmaking, quick CPU practice, ChatGPT CPUs, or a private room.</li>
+        <li>Give a one-word hint, vote for the Copycat, and complete the final guess if the Copycat is caught.</li>
+      </ol>
+      <p>If COPYCAT is still in review and not yet listed publicly, developers and reviewers can add the production MCP endpoint in ChatGPT Developer Mode using <code>https://copycat-chatgpt-app.kistame228.workers.dev/mcp</code> with no authentication.</p>
+
+      <h2>Common fixes</h2>
+      <ul>
+        <li><strong>The widget does not open:</strong> start a new chat, confirm the COPYCAT plugin is enabled, and ask explicitly to open COPYCAT.</li>
+        <li><strong>No players are available:</strong> online matchmaking automatically adds rule CPUs after about ten seconds, or you can choose Quick CPU practice immediately.</li>
+        <li><strong>A room code fails:</strong> confirm all four characters and ask the host to keep the room open. Expired rooms cannot be restored.</li>
+        <li><strong>The game disconnected:</strong> keep the chat open and retry. The widget automatically attempts to reconnect.</li>
+      </ul>
+
+      <h2>Report a problem</h2>
+      <p>Open a GitHub issue with what you expected, what happened, your device and ChatGPT surface, and the approximate time. A room code may help diagnose a live-room problem, but never include passwords, API keys, full chat transcripts, or sensitive personal information.</p>
+      <div class="actions"><a class="button" href="https://github.com/KentaSUGAI/copycat-chatgpt-app/issues/new" rel="noreferrer">Open a support issue</a><a class="button secondary" href="https://github.com/KentaSUGAI/copycat-chatgpt-app" rel="noreferrer">View source</a></div>
+    </main>
+    <footer><a href="/">COPYCAT</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/support">Support</a></footer>
+  </div>
+</body>
+</html>

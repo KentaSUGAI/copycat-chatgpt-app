@@ -53,6 +53,9 @@ body {
   animation: float 3.2s ease-in-out infinite;
 }
 .app-only { max-width: 440px; margin: 18vh auto 0; text-align: center; }
+.legal-links { display: flex; justify-content: center; gap: 18px; margin-top: 28px; font-size: 12px; }
+.legal-links a { color: var(--muted); text-decoration: none; }
+.legal-links a:hover { color: var(--accent-deep); }
 h1.logo {
   font-size: 36px; letter-spacing: 8px; margin-top: 14px; color: var(--head);
   text-shadow: 1px 1px 0 var(--sh-l), -1px -1px 1px #b9c2d6;

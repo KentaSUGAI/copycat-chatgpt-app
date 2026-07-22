@@ -94,6 +94,22 @@ async function testStaticAndMcp() {
   const html = await (await fetch(`${BASE}/`)).text();
   assert.match(html, /topics\.js[\s\S]*i18n\.js[\s\S]*app\.js/);
 
+  for (const [path, expected] of [
+    ["/privacy", /Privacy Policy/],
+    ["/terms", /Terms of Service/],
+    ["/support", /How to play/],
+  ]) {
+    const response = await fetch(`${BASE}${path}`);
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), expected);
+  }
+  const challenge = await fetch(`${BASE}/.well-known/openai-apps-challenge`);
+  assert.ok([200, 404].includes(challenge.status));
+  if (challenge.status === 200) {
+    assert.match(challenge.headers.get("content-type") || "", /^text\/plain/);
+    assert.ok((await challenge.text()).trim().length > 0);
+  }
+
   const initialized = await rpc("initialize", {});
   assert.equal(initialized.result.serverInfo.name, "copycat");
   assert.match(initialized.result.instructions, /action=home/);
@@ -105,6 +121,11 @@ async function testStaticAndMcp() {
     tools.result.tools.map((tool) => tool.name),
     ["open_copycat", "get_copycat_cpu_turn", "submit_copycat_cpu_turn", "translate_copycat_hints", "localize_copycat"],
   );
+  assert.ok(tools.result.tools.every((tool) =>
+    typeof tool.annotations?.readOnlyHint === "boolean" &&
+    typeof tool.annotations?.destructiveHint === "boolean" &&
+    typeof tool.annotations?.openWorldHint === "boolean" &&
+    tool.outputSchema?.type === "object"));
   const home = await rpc("tools/call", { name: "open_copycat", arguments: {} }, 5);
   assert.equal(home.result.structuredContent.mode, "home");
   assert.equal(home.result.structuredContent.roomCode, "");

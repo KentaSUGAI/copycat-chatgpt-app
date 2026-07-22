@@ -1,0 +1,38 @@
+{
+  "name": "copycat",
+  "version": "2.3.0",
+  "description": "A multilingual social-deduction party game that runs inside ChatGPT.",
+  "author": {
+    "name": "Kenta SUGAI",
+    "url": "https://github.com/KentaSUGAI"
+  },
+  "homepage": "https://copycat-chatgpt-app.kistame228.workers.dev",
+  "repository": "https://github.com/KentaSUGAI/copycat-chatgpt-app",
+  "license": "MIT",
+  "keywords": ["game", "multiplayer", "social-deduction", "multilingual"],
+  "mcpServers": {
+    "copycat": {
+      "type": "http",
+      "url": "https://copycat-chatgpt-app.kistame228.workers.dev/mcp"
+    }
+  },
+  "interface": {
+    "displayName": "COPYCAT — Multilingual Party Game",
+    "shortDescription": "Find the player who does not know the secret word.",
+    "longDescription": "Play a realtime social-deduction game in ChatGPT with global matchmaking, private rooms, instant CPU practice, optional ChatGPT-controlled players, and per-player multilingual hints.",
+    "developerName": "Kenta SUGAI",
+    "category": "Lifestyle",
+    "capabilities": ["Interactive", "Multiplayer", "Localization"],
+    "websiteURL": "https://copycat-chatgpt-app.kistame228.workers.dev",
+    "privacyPolicyURL": "https://copycat-chatgpt-app.kistame228.workers.dev/privacy",
+    "termsOfServiceURL": "https://copycat-chatgpt-app.kistame228.workers.dev/terms",
+    "defaultPrompt": [
+      "Open COPYCAT and find players for me.",
+      "Start a quick COPYCAT game against CPUs.",
+      "Create a private COPYCAT room for my friends."
+    ],
+    "brandColor": "#6255E7",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
+  }
+}
